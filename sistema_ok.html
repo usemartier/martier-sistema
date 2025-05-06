@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Martier Unificado</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+    .menu-lateral {
+      width: 250px; background: #fff; border-right: 1px solid #ddd; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+    .menu-lateral h2 { font-size: 18px; margin-bottom: 30px; }
+    .menu-lateral ul { list-style: none; padding: 0; }
+    .menu-lateral li { margin: 15px 0; }
+    .menu-lateral a {
+      text-decoration: none; color: #333; display: flex; align-items: center; padding: 8px; border-radius: 5px;
+    }
+    .menu-lateral a:hover, .menu-lateral a.active { background-color: #f0f0f0; }
+    .menu-lateral i { margin-right: 10px; font-size: 18px; }
+    .conteudo { flex: 1; padding: 30px; background-color: #f8f8f8; overflow-y: auto; }
+    input, button, select { width: 100%; padding: 10px; margin-bottom: 10px; }
+    .produto-item { background: #fff; border: 1px solid #ccc; margin-bottom: 8px; padding: 10px; }
+    .finalizado-item {
+      border: 2px solid #2ecc71;
+      background-color: #eafaf1;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .kanban { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; }
+    .coluna { flex: 1; min-width: 220px; background: #111; color: white; border-radius: 8px; padding: 10px; }
+    .coluna h2 { text-align: center; margin-bottom: 10px; font-size: 18px; }
+    .card { background: #333; margin-bottom: 10px; padding: 10px; border-radius: 6px; color: white; position: relative; }
+    .card.vermelho { background: #8B0000; }
+    .card.verde { background: #006400; }
+    .card.azul { background: #003366; }
+    .card.amarelo { background: #8B8000; }
+    .tempo { font-size: 12px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+    .tempo i { font-size: 14px; }
+    @keyframes piscar { 0%, 100% { background: inherit; } 50% { background: #ff4444; } }
+  </style>
+</head>
+<body>
+<div class="menu-lateral">
+  <h2>Sistema Martier</h2>
+  <ul>
+    <li><a href="#" class="menu-link" data-tela="cadastro"><i class="bi bi-box"></i> Cadastro de Produtos</a></li>
+    <li><a href="#" class="menu-link" data-tela="lancar"><i class="bi bi-plus-circle"></i> Lançar Produção</a></li>
+    <li><a href="#" class="menu-link" data-tela="manutencao"><i class="bi bi-tools"></i> Manutenção de Produção</a></li>
+    <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> Painel de Produção</a></li>
+  </ul>
+</div>
+<div class="conteudo" id="conteudo"></div>
+
+<script>
+let produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
+let painelInterval;
+
+function carregarTela(tela) {
+  clearInterval(painelInterval);
+  const conteudo = document.getElementById("conteudo");
+
+  if (tela === "cadastro") {
+    conteudo.innerHTML = `
+      <h1>Cadastro de Produtos</h1>
+      <input type="text" id="nomeProduto" placeholder="Nome do Produto">
+      <input type="text" id="corProduto" placeholder="Cor">
+      <input type="text" id="tamanhoProduto" placeholder="Tamanho">
+      <button onclick="salvarProduto()">Salvar Produto</button>
+      <button onclick="importarPlanilha()">Importar do Google Sheets</button>
+      <div id="listaProdutos"></div>
+    `;
+    exibirProdutos();
+  }
+
+  if (tela === "lancar") {
+    conteudo.innerHTML = `
+      <h1>Lançar Produção</h1>
+      <select id="produtoSelect"></select>
+      <input type="number" id="quantidade" placeholder="Quantidade">
+      <button onclick="lancarProducao()">Lançar</button>
+    `;
+
+    const select = document.getElementById("produtoSelect");
+
+    produtos
+      .map((p, i) => ({ ...p, index: i }))
+      .sort((a, b) => {
+        const nomeA = `${a.nome} ${a.cor} ${a.tamanho}`.toLowerCase();
+        const nomeB = `${b.nome} ${b.cor} ${b.tamanho}`.toLowerCase();
+        return nomeA.localeCompare(nomeB);
+      })
+      .forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.index;
+        option.textContent = `${p.nome} ${p.cor} ${p.tamanho}`;
+        select.appendChild(option);
+      });
+  }
+
+  if (tela === "manutencao") {
+    conteudo.innerHTML = `
+      <h1>Manutenção da Produção</h1>
+      <button onclick="limparProducao()" style="margin-bottom: 15px; background: #e74c3c; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">
+        🗑️ Limpar Produção
+      </button>
+      <div id="manutencaoLista"></div>
+      <h2>Finalizados</h2>
+      <div id="finalizadosLista"></div>
+    `;
+    atualizarManutencao();
+  }
+
+  if (tela === "painel") {
+    conteudo.innerHTML = `
+      <h1>Production Flow Kanban</h1>
+      <div class="kanban">
+        <div class="coluna" id="pendencia"><h2>Pendência</h2></div>
+        <div class="coluna" id="fila"><h2>Fila de Produção</h2></div>
+        <div class="coluna" id="construcao"><h2>Em Construção</h2></div>
+        <div class="coluna" id="finalizado"><h2>Finalizados</h2></div>
+      </div>`;
+    atualizarPainel();
+    painelInterval = setInterval(atualizarPainel, 10000);
+  }
+}
+
+function salvarProduto() {
+  const nome = document.getElementById("nomeProduto").value;
+  const cor = document.getElementById("corProduto").value;
+  const tamanho = document.getElementById("tamanhoProduto").value;
+  produtos.push({ nome, cor, tamanho });
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  carregarTela("cadastro");
+}
+
+function importarPlanilha() {
+  const url = "https://script.google.com/macros/s/AKfycbyQE50-pgUyzDZArI2nvCeYXDz9YpnaDPb_Ti6pmrd0A21eZWLTWyJG5EU436vYEM9Ulg/exec";
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const existentes = JSON.parse(localStorage.getItem("produtos") || "[]");
+
+      data.forEach(novo => {
+        const existe = existentes.some(e =>
+          e.nome === novo.nome &&
+          e.cor === novo.cor &&
+          e.tamanho === novo.tamanho
+        );
+        if (!existe) {
+          existentes.push({
+            nome: novo.nome,
+            cor: novo.cor,
+            tamanho: novo.tamanho
+          });
+        }
+      });
+
+      produtos = existentes;
+      localStorage.setItem("produtos", JSON.stringify(produtos));
+      carregarTela('cadastro');
+      alert("Importação concluída! Os produtos foram atualizados com sucesso.");
+    });
+}
+
+function exibirProdutos() {
+  const lista = document.getElementById("listaProdutos");
+  lista.innerHTML = "";
+  produtos.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "produto-item";
+    div.innerText = `${p.nome} - ${p.cor} - ${p.tamanho}`;
+    lista.appendChild(div);
+  });
+}
+
+function lancarProducao() {
+  const value = document.getElementById("produtoSelect").value;
+  const index = parseInt(value.split(" - ")[0]);
+  const quantidade = parseInt(document.getElementById("quantidade").value);
+  const pendencia = confirm("É uma pendência?");
+  produtos[index].quantidade = quantidade;
+  produtos[index].status = pendencia ? "pendencia" : "fila";
+  produtos[index].costureira = "";
+  produtos[index].inicio = Date.now();
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  alert("Produção lançada!");
+}
+
+function atualizarManutencao() {
+  const lista = document.getElementById("manutencaoLista");
+  const finalizadosLista = document.getElementById("finalizadosLista");
+  lista.innerHTML = "";
+  finalizadosLista.innerHTML = "";
+
+  produtos.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "produto-item" + (p.status === "finalizado" ? " finalizado-item" : "");
+    div.innerHTML = `
+      <b>${p.nome} ${p.cor} ${p.tamanho}</b><br>
+      <b>Qtd:</b> ${p.quantidade ?? "-"}<br>
+      <select onchange="produtos[${i}].status=this.value">
+        <option ${p.status==='pendencia'?'selected':''}>pendencia</option>
+        <option ${p.status==='fila'?'selected':''}>fila</option>
+        <option ${p.status==='construcao'?'selected':''}>construcao</option>
+        <option ${p.status==='finalizado'?'selected':''}>finalizado</option>
+      </select>
+      <input value="${p.costureira || ''}" placeholder="Costureira" onchange="produtos[${i}].costureira=this.value">
+      <button onclick="salvarStatus(${i})">Salvar</button>
+    `;
+    if (p.status === "finalizado") finalizadosLista.appendChild(div);
+    else if (p.status) lista.appendChild(div);
+  });
+}
+
+function salvarStatus(i) {
+  if (produtos[i].status === "finalizado") produtos[i].fim = Date.now();
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  atualizarManutencao();
+  atualizarPainel();
+}
+
+function atualizarPainel() {
+  const lista = JSON.parse(localStorage.getItem("produtos") || "[]");
+  const colunas = { pendencia: [], fila: [], construcao: [], finalizado: [] };
+  lista.forEach(p => { if (p.status) colunas[p.status]?.push(p); });
+  Object.entries(colunas).forEach(([status, itens]) => {
+    const el = document.getElementById(status);
+    if (!el) return;
+    el.innerHTML = `<h2>${el.querySelector('h2')?.innerText || status}</h2>`;
+    itens.forEach(p => {
+      const tempo = Math.floor((Date.now() - p.inicio) / 60000);
+      const card = document.createElement("div");
+      card.className = `card ${corPorStatus(status)}`;
+      if (tempo > 30 && status === 'construcao') card.style.animation = 'piscar 1s infinite';
+      if (tempo >= 60 && status === 'construcao') new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=").play();
+      card.innerHTML = `<div>${p.nome} ${p.tamanho}</div><div class="tempo"><i class='bi bi-clock'></i> ${tempo} min</div>`;
+      el.appendChild(card);
+    });
+  });
+}
+
+function corPorStatus(status) {
+  return status === 'pendencia' ? 'amarelo' : status === 'fila' ? 'azul' : status === 'construcao' ? 'vermelho' : 'verde';
+}
+
+function limparProducao() {
+  if (!confirm("Tem certeza que deseja remover todos os produtos em produção?")) return;
+  produtos = produtos.filter(p => !p.status);
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  atualizarManutencao();
+}
+
+document.querySelectorAll('.menu-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    carregarTela(this.dataset.tela);
+    document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+carregarTela("cadastro");
+</script>
+</body>
+</html>
