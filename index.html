@@ -40,12 +40,16 @@
     .menu-oculta { display: none; }
 
     .conteudo {
-      flex: 1;
-      padding: 30px;
-      background-color: #f8f8f8;
-      overflow-y: auto;
-      transition: all 0.3s ease;
-    }
+  flex-grow: 1;
+  min-width: 0;
+  padding: 30px;
+  background-color: #f8f8f8;
+  overflow-x: auto;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
 
     .conteudo.expandido {
       flex: 1 0 100%;
@@ -53,23 +57,23 @@
     }
 
     #botao-toggle {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 1000;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
 
     input, button, select { width: 100%; padding: 10px; margin-bottom: 10px; }
     .produto-item { background: #fff; border: 1px solid #ccc; margin-bottom: 8px; padding: 10px; }
@@ -78,8 +82,19 @@
       background-color: #eafaf1;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
-    .kanban { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; }
-    .coluna { flex: 1; min-width: 220px; background: #111; color: white; border-radius: 8px; padding: 10px; }
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .coluna {
+      background: #111;
+      color: white;
+      border-radius: 8px;
+      padding: 10px;
+    }
     .coluna h2 { text-align: center; margin-bottom: 10px; font-size: 18px; }
     .card { background: #333; margin-bottom: 10px; padding: 10px; border-radius: 6px; color: white; position: relative; }
     .card.vermelho { background: #8B0000; }
@@ -89,6 +104,12 @@
     .tempo { font-size: 12px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
     .tempo i { font-size: 14px; }
     @keyframes piscar { 0%, 100% { background: inherit; } 50% { background: #ff4444; } }
+
+    @media (max-width: 1024px) {
+      .kanban {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
@@ -96,20 +117,20 @@
   <button id="botao-toggle" title="Mostrar/Ocultar Menu">
     <i class="bi bi-list"></i>
   </button>
-  
 
-<div class="menu-lateral menu-oculta" id="menuLateral">
-  <h2>Sistema Martier</h2>
-  <ul>
-    <li><a href="#" class="menu-link" data-tela="cadastro"><i class="bi bi-box"></i> Cadastro de Produtos</a></li>
-    <li><a href="#" class="menu-link" data-tela="lancar"><i class="bi bi-plus-circle"></i> Lançar Produção</a></li>
-    <li><a href="#" class="menu-link" data-tela="manutencao"><i class="bi bi-tools"></i> Manutenção de Produção</a></li>
-    <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> Painel de Produção</a></li>
-  </ul>
-</div>
+  <div class="menu-lateral menu-oculta" id="menuLateral">
+    <h2>Sistema Martier</h2>
+    <ul>
+      <li><a href="#" class="menu-link" data-tela="cadastro"><i class="bi bi-box"></i> Cadastro de Produtos</a></li>
+      <li><a href="#" class="menu-link" data-tela="lancar"><i class="bi bi-plus-circle"></i> Lançar Produção</a></li>
+      <li><a href="#" class="menu-link" data-tela="manutencao"><i class="bi bi-tools"></i> Manutenção de Produção</a></li>
+      <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> Painel de Produção</a></li>
+    </ul>
+  </div>
 
-<div class="conteudo expandido" id="conteudo"></div>
-
+  <div class="conteudo expandido" id="conteudo">
+    <div style="overflow-x: auto; width: 100%;">
+      <div class="kanban">
 <script>
 let produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
 let painelInterval;
@@ -237,10 +258,19 @@ function lancarProducao() {
   const index = parseInt(value);
   const quantidade = parseInt(document.getElementById("quantidade").value);
   const pendencia = confirm("É uma pendência?");
-  produtos[index].quantidade = quantidade;
-  produtos[index].status = pendencia ? "pendencia" : "fila";
-  produtos[index].costureira = "";
-  produtos[index].inicio = Date.now();
+  const baseProduto = produtos[index];
+
+  const novoProduto = {
+    nome: baseProduto.nome,
+    cor: baseProduto.cor,
+    tamanho: baseProduto.tamanho,
+    quantidade: quantidade,
+    status: pendencia ? "pendencia" : "fila",
+    costureira: "",
+    inicio: Date.now()
+  };
+
+  produtos.push(novoProduto);
   localStorage.setItem("produtos", JSON.stringify(produtos));
   alert("Produção lançada!");
 }
@@ -292,7 +322,28 @@ function atualizarPainel() {
       card.className = `card ${corPorStatus(status)}`;
       if (tempo > 30 && status === 'construcao') card.style.animation = 'piscar 1s infinite';
       if (tempo >= 60 && status === 'construcao') new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=").play();
-      card.innerHTML = `<div>${p.nome} ${p.tamanho}</div><div class="tempo"><i class='bi bi-clock'></i> ${tempo} min</div>`;
+      const inicioData = new Date(p.inicio);
+const diff = Date.now() - p.inicio;
+const minutos = Math.floor(diff / 60000) % 60;
+const horas = Math.floor(diff / 3600000) % 24;
+const dias = Math.floor(diff / 86400000);
+
+const tempoStr = [
+  dias > 0 ? `${dias} d` : '',
+  horas > 0 ? `${horas} h` : '',
+  `${minutos} min`
+].filter(Boolean).join(' ');
+
+const dataFormatada = inicioData.toLocaleString('pt-BR', {
+  day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit'
+});
+
+card.innerHTML = `
+  <div>${p.nome} ${p.tamanho}</div>
+  <div class="tempo"><i class='bi bi-calendar'></i> Lançado em: ${dataFormatada}</div>
+  <div class="tempo"><i class='bi bi-clock'></i> ${tempoStr}</div>
+`;
       el.appendChild(card);
     });
   });
