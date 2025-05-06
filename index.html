@@ -6,8 +6,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
     body { margin: 0; font-family: Arial, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
     .menu-lateral {
-      width: 250px; background: #fff; border-right: 1px solid #ddd; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      width: 250px; background: #fff; border-right: 1px solid #ddd; padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05); transition: width 0.3s ease, padding 0.3s ease;
     }
     .menu-lateral h2 { font-size: 18px; margin-bottom: 30px; }
     .menu-lateral ul { list-style: none; padding: 0; }
@@ -17,6 +19,28 @@
     }
     .menu-lateral a:hover, .menu-lateral a.active { background-color: #f0f0f0; }
     .menu-lateral i { margin-right: 10px; font-size: 18px; }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .menu-lateral.colapsado {
+      width: 60px;
+      padding: 20px 5px;
+    }
+    .menu-lateral.colapsado h2,
+    .menu-lateral.colapsado ul li a span {
+      display: none;
+    }
+    .menu-lateral.colapsado ul li a i {
+      margin-right: 0;
+    }
+
     .conteudo { flex: 1; padding: 30px; background-color: #f8f8f8; overflow-y: auto; }
     input, button, select { width: 100%; padding: 10px; margin-bottom: 10px; }
     .produto-item { background: #fff; border: 1px solid #ccc; margin-bottom: 8px; padding: 10px; }
@@ -39,16 +63,22 @@
   </style>
 </head>
 <body>
-<div class="menu-lateral">
+<div class="menu-lateral" id="menuLateral">
   <h2>Sistema Martier</h2>
+  <button class="toggle-btn" onclick="alternarMenu()">☰</button>
   <ul>
-    <li><a href="#" class="menu-link" data-tela="cadastro"><i class="bi bi-box"></i> Cadastro de Produtos</a></li>
-    <li><a href="#" class="menu-link" data-tela="lancar"><i class="bi bi-plus-circle"></i> Lançar Produção</a></li>
-    <li><a href="#" class="menu-link" data-tela="manutencao"><i class="bi bi-tools"></i> Manutenção de Produção</a></li>
-    <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> Painel de Produção</a></li>
+    <li><a href="#" class="menu-link" data-tela="cadastro"><i class="bi bi-box"></i> <span>Cadastro de Produtos</span></a></li>
+    <li><a href="#" class="menu-link" data-tela="lancar"><i class="bi bi-plus-circle"></i> <span>Lancar Produção</span></a></li>
+    <li><a href="#" class="menu-link" data-tela="manutencao"><i class="bi bi-tools"></i> <span>Manutenção de Produção</span></a></li>
+    <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> <span>Painel de Produção</span></a></li>
   </ul>
 </div>
 <div class="conteudo" id="conteudo"></div>
+
+<script>
+function alternarMenu() {
+  document.getElementById('menuLateral').classList.toggle('colapsado');
+}
 
 <script>
 let produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
