@@ -137,6 +137,21 @@
       <div class="kanban">
 <script>
 let produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
+function limparFinalizadosDiariamente() {
+  const hoje = new Date().toLocaleDateString();
+  const ultimaLimpeza = localStorage.getItem("ultimaLimpeza") || "";
+
+  if (hoje !== ultimaLimpeza) {
+    // Remove todos os produtos que estão em 'finalizado'
+    produtos = produtos.filter(p => p.status !== "finalizado");
+    localStorage.setItem("produtos", JSON.stringify(produtos));
+    localStorage.setItem("ultimaLimpeza", hoje);
+    atualizarPainel();
+    console.log("Produtos finalizados removidos com sucesso!");
+  }
+}
+limparFinalizadosDiariamente();
+
 let painelInterval;
 
 function carregarTela(tela) {
