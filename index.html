@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Sistema Martier Unificado</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons @1.10.5/font/bootstrap-icons.css">
   <style>
     body {
       margin: 0;
@@ -12,7 +12,6 @@
       height: 100vh;
       overflow: hidden;
     }
-
     .menu-lateral {
       width: 250px;
       background: #fff;
@@ -21,7 +20,6 @@
       box-shadow: 2px 0 5px rgba(0,0,0,0.05);
       transition: all 0.3s ease;
     }
-
     .menu-lateral h2 { font-size: 18px; margin-bottom: 30px; }
     .menu-lateral ul { list-style: none; padding: 0; }
     .menu-lateral li { margin: 15px 0; }
@@ -36,30 +34,26 @@
     .menu-lateral a:hover,
     .menu-lateral a.active { background-color: #f0f0f0; }
     .menu-lateral i { margin-right: 10px; font-size: 18px; }
-
     .menu-oculta { display: none; }
-
     .conteudo {
-  flex-grow: 1;
-  min-width: 0;
-  padding: 30px;
-  background-color: #f8f8f8;
-  overflow-x: auto;
-  overflow-y: auto;
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
+      flex-grow: 1;
+      min-width: 0;
+      padding: 30px;
+      background-color: #f8f8f8;
+      overflow-x: auto;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
     .conteudo.expandido {
       flex: 1 0 100%;
       padding-left: 30px;
     }
-
     #botao-toggle {
-      position: fixed;
-      top: 12px;
-      left: 12px;
+      position: top;
+      top: 10px;
+      left: 10px;
       z-index: 1000;
       background: #007bff;
       color: white;
@@ -74,7 +68,6 @@
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-
     input, button, select { width: 100%; padding: 10px; margin-bottom: 10px; }
     .produto-item { background: #fff; border: 1px solid #ccc; margin-bottom: 8px; padding: 10px; }
     .finalizado-item {
@@ -97,27 +90,39 @@
     }
     .coluna h2 { text-align: center; margin-bottom: 10px; font-size: 18px; }
     .card { background: #333; margin-bottom: 10px; padding: 10px; border-radius: 6px; color: white; position: relative; }
-    .card.vermelho { background: #8B0000; }
+    .card.vermelho { background: #e0dd13; }
     .card.verde { background: #006400; }
     .card.azul { background: #003366; }
-    .card.amarelo { background: #8B8000; }
+    .card.amarelo { background: #f19e9e; }
     .tempo { font-size: 12px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
     .tempo i { font-size: 14px; }
     @keyframes piscar { 0%, 100% { background: inherit; } 50% { background: #ff4444; } }
-
     @media (max-width: 1024px) {
       .kanban {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       }
     }
+
+    /* Estilo opcional para o botão de excluir */
+    .produto-item button.excluir-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .produto-item button.excluir-btn:hover {
+      background-color: #c0392b;
+    }
   </style>
 </head>
 <body>
-
   <button id="botao-toggle" title="Mostrar/Ocultar Menu">
     <i class="bi bi-list"></i>
   </button>
-
   <div class="menu-lateral menu-oculta" id="menuLateral">
     <h2>Sistema Martier</h2>
     <ul>
@@ -127,7 +132,6 @@
       <li><a href="#" class="menu-link" data-tela="painel"><i class="bi bi-kanban"></i> Painel de Produção</a></li>
     </ul>
   </div>
-
   <div class="conteudo expandido" id="conteudo">
     <div style="overflow-x: auto; width: 100%;">
       <div class="kanban">
@@ -138,7 +142,6 @@ let painelInterval;
 function carregarTela(tela) {
   clearInterval(painelInterval);
   const conteudo = document.getElementById("conteudo");
-
   if (tela === "cadastro") {
     conteudo.innerHTML = `
       <h1>Cadastro de Produtos</h1>
@@ -151,7 +154,6 @@ function carregarTela(tela) {
     `;
     exibirProdutos();
   }
-
   if (tela === "lancar") {
     conteudo.innerHTML = `
       <h1>Lançar Produção</h1>
@@ -159,9 +161,7 @@ function carregarTela(tela) {
       <input type="number" id="quantidade" placeholder="Quantidade">
       <button onclick="lancarProducao()">Lançar</button>
     `;
-
     const select = document.getElementById("produtoSelect");
-
     produtos
       .map((p, i) => ({ ...p, index: i }))
       .sort((a, b) => {
@@ -176,7 +176,6 @@ function carregarTela(tela) {
         select.appendChild(option);
       });
   }
-
   if (tela === "manutencao") {
     conteudo.innerHTML = `
       <h1>Manutenção da Produção</h1>
@@ -189,7 +188,6 @@ function carregarTela(tela) {
     `;
     atualizarManutencao();
   }
-
   if (tela === "painel") {
     conteudo.innerHTML = `
       <h1>Production Flow Kanban</h1>
@@ -214,12 +212,11 @@ function salvarProduto() {
 }
 
 function importarPlanilha() {
-  const url = "https://script.google.com/macros/s/AKfycbyQE50-pgUyzDZArI2nvCeYXDz9YpnaDPb_Ti6pmrd0A21eZWLTWyJG5EU436vYEM9Ulg/exec";
+  const url = "https://script.google.com/macros/s/AKfycbyQE50-pgUyzDZArI2nvCeYXDz9YpnaDPb_Ti6pmrd0A21eZWLTWyJG5EU436vYEM9Ulg/exec ";
   fetch(url)
     .then(res => res.json())
     .then(data => {
       const existentes = JSON.parse(localStorage.getItem("produtos") || "[]");
-
       data.forEach(novo => {
         const existe = existentes.some(e =>
           e.nome === novo.nome &&
@@ -234,7 +231,6 @@ function importarPlanilha() {
           });
         }
       });
-
       produtos = existentes;
       localStorage.setItem("produtos", JSON.stringify(produtos));
       carregarTela('cadastro');
@@ -259,7 +255,6 @@ function lancarProducao() {
   const quantidade = parseInt(document.getElementById("quantidade").value);
   const pendencia = confirm("É uma pendência?");
   const baseProduto = produtos[index];
-
   const novoProduto = {
     nome: baseProduto.nome,
     cor: baseProduto.cor,
@@ -269,7 +264,6 @@ function lancarProducao() {
     costureira: "",
     inicio: Date.now()
   };
-
   produtos.push(novoProduto);
   localStorage.setItem("produtos", JSON.stringify(produtos));
   alert("Produção lançada!");
@@ -280,7 +274,6 @@ function atualizarManutencao() {
   const finalizadosLista = document.getElementById("finalizadosLista");
   lista.innerHTML = "";
   finalizadosLista.innerHTML = "";
-
   produtos.forEach((p, i) => {
     const div = document.createElement("div");
     div.className = "produto-item" + (p.status === "finalizado" ? " finalizado-item" : "");
@@ -295,6 +288,7 @@ function atualizarManutencao() {
       </select>
       <input value="${p.costureira || ''}" placeholder="Costureira" onchange="produtos[${i}].costureira=this.value">
       <button onclick="salvarStatus(${i})">Salvar</button>
+      <button class="excluir-btn" onclick="excluirProduto(${i})">Excluir</button>
     `;
     if (p.status === "finalizado") finalizadosLista.appendChild(div);
     else if (p.status) lista.appendChild(div);
@@ -306,6 +300,13 @@ function salvarStatus(i) {
   localStorage.setItem("produtos", JSON.stringify(produtos));
   atualizarManutencao();
   atualizarPainel();
+}
+
+function excluirProduto(i) {
+  if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+  produtos.splice(i, 1);
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  atualizarManutencao();
 }
 
 function atualizarPainel() {
@@ -320,25 +321,22 @@ function atualizarPainel() {
       const tempo = Math.floor((Date.now() - p.inicio) / 60000);
       const card = document.createElement("div");
       card.className = `card ${corPorStatus(status)}`;
-      if (tempo > 30 && status === 'construcao') card.style.animation = 'piscar 1s infinite';
-      if (tempo >= 60 && status === 'construcao') new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=").play();
+      if (tempo > 30 && status === 'pendencia') card.style.animation = 'piscar 1s infinite';
+      if (tempo >= 1440 && status === 'construcao') new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=").play();
       const inicioData = new Date(p.inicio);
 const diff = Date.now() - p.inicio;
 const minutos = Math.floor(diff / 60000) % 60;
 const horas = Math.floor(diff / 3600000) % 24;
 const dias = Math.floor(diff / 86400000);
-
 const tempoStr = [
   dias > 0 ? `${dias} d` : '',
   horas > 0 ? `${horas} h` : '',
   `${minutos} min`
 ].filter(Boolean).join(' ');
-
 const dataFormatada = inicioData.toLocaleString('pt-BR', {
   day: '2-digit', month: '2-digit', year: 'numeric',
   hour: '2-digit', minute: '2-digit'
 });
-
 card.innerHTML = `
   <div>${p.nome} ${p.tamanho}</div>
   <div class="tempo"><i class='bi bi-calendar'></i> Lançado em: ${dataFormatada}</div>
