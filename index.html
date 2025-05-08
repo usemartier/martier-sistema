@@ -153,6 +153,23 @@ function limparFinalizadosDiariamente() {
 limparFinalizadosDiariamente();
 
 let painelInterval;
+window.onload = () => {
+  // Esconder o menu lateral ao iniciar
+  const menu = document.getElementById("menuLateral");
+  const conteudo = document.getElementById("conteudo");
+  menu.classList.add("menu-oculta");
+  conteudo.classList.add("expandido");
+
+  // Carregar a tela "Painel de Produção" por padrão
+  carregarTela("painel");
+  
+  // Marcar o botão do menu como ativo
+  document.querySelectorAll('.menu-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  document.querySelector('a[data-tela="painel"]').classList.add('active');
+};
+
 
 function carregarTela(tela) {
   clearInterval(painelInterval);
